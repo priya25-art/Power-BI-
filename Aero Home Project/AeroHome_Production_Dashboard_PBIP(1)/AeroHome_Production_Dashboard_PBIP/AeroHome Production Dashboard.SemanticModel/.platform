@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "AeroHome Production Dashboard"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "845aa5c0-2e90-4ed0-9aa4-4e78bc6c110a"
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
+  "name": "shortfall_share",
+  "position": {
+    "x": 24,
+    "y": 450,
+    "z": 1000,
+    "height": 240,
+    "width": 400,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "donutChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Plant Performance"
+                    }
+                  },
+                  "Property": "Plant"
+                }
+              },
+              "queryRef": "Plant Performance.Plant",
+              "nativeQueryRef": "Plant",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Plant Performance"
+                    }
+                  },
+                  "Property": "Production Shortfall"
+                }
+              },
+              "queryRef": "Plant Performance.Production Shortfall",
+              "nativeQueryRef": "Production Shortfall"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

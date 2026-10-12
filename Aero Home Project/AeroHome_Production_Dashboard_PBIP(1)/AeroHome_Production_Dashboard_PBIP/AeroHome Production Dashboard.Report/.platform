@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "AeroHome Production Planning and Performance Dashboard"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "c57504db-9e0a-4c54-9593-9ab62d11407e"
+  }
+}

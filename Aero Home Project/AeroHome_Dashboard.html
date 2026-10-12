@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AeroHome Manufacturing - Operations Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f4f6f9;--card:#fff;--ink:#1d2433;--muted:#6b7385;--accent:#1f5fa8;--warn:#c0392b;--ok:#2e8b57;--line:#e3e7ee}
+*{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:#14233b;color:#fff;padding:16px 24px}header h1{margin:0;font-size:20px}header p{margin:4px 0 0;color:#b8c4d8;font-size:13px}
+nav{display:flex;flex-wrap:wrap;gap:6px;padding:10px 24px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+nav button{border:1px solid var(--line);background:#fff;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:13px;color:var(--ink)}
+nav button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+main{padding:20px 24px}.page{display:none}.page.active{display:block}
+h2{font-size:18px;margin:0 0 4px}.sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px}
+.kpi .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}.kpi .v{font-size:22px;font-weight:600;margin-top:4px}
+.kpi .n{font-size:11px;color:var(--muted);margin-top:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px}
+.card h3{font-size:14px;margin:0 0 8px}.card .note{font-size:11px;color:var(--muted);margin-top:6px}
+.wide{grid-column:1/-1}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}th{background:#f8f9fb;color:var(--muted);font-weight:600}
+.flag{color:var(--warn);font-weight:600}.good{color:var(--ok);font-weight:600}
+.callout{background:#fff8e6;border-left:4px solid #e0a800;padding:10px 14px;border-radius:6px;font-size:13px;margin-top:14px}
+.canvas-box{position:relative;height:280px}
+footer{padding:14px 24px;color:var(--muted);font-size:11px}
+</style></head><body>
+<header><h1>AeroHome Manufacturing - Operations Dashboard</h1>
+<p>Production, quality, downtime, energy, finance and supply chain | Source: AeroHome dataset, 2025 | Financial values assume INR</p></header>
+<nav id="nav"></nav>
+<main>
+<!-- 1 EXECUTIVE -->
+<section class="page" id="p1"><h2>1. Executive Overview</h2><p class="sub">Is performance on target, and where should management look first?</p>
+<div class="kpis" id="execKpis"></div>
+<div class="grid">
+<div class="card wide"><h3>Planned vs produced units by month</h3><div class="canvas-box"><canvas id="c_mtrend"></canvas></div></div>
+<div class="card"><h3>Attention areas</h3><div id="attention"></div></div>
+<div class="card"><h3>Production achievement by plant</h3><div class="canvas-box"><canvas id="c_exec_plant"></canvas></div></div>
+</div></section>
+
+<!-- 2 PRODUCTION -->
+<section class="page" id="p2"><h2>2. Production & Plant Performance</h2><p class="sub">Which plants, products and machines fall short of plan?</p>
+<div class="grid">
+<div class="card"><h3>Planned vs produced by plant</h3><div class="canvas-box"><canvas id="c_pl_pp"></canvas></div></div>
+<div class="card"><h3>Achievement % by product (lowest first)</h3><div class="canvas-box"><canvas id="c_prod_ach"></canvas></div></div>
+<div class="card"><h3>Achievement % by machine</h3><div class="canvas-box"><canvas id="c_mach_ach"></canvas></div></div>
+<div class="card"><h3>Plant shortfall (units)</h3><div id="tbl_plant_short"></div></div>
+</div></section>
+
+<!-- 3 MACHINE & DOWNTIME -->
+<section class="page" id="p3"><h2>3. Machine & Downtime Analysis</h2><p class="sub">Which machines, reasons and categories account for lost time?</p>
+<div class="kpis" id="dtKpis"></div>
+<div class="grid">
+<div class="card"><h3>Downtime minutes by machine (production runs)</h3><div class="canvas-box"><canvas id="c_mach_dt"></canvas></div></div>
+<div class="card"><h3>Downtime minutes by reason (downtime events)</h3><div class="canvas-box"><canvas id="c_reason"></canvas></div></div>
+<div class="card"><h3>Downtime by category</h3><div class="canvas-box"><canvas id="c_cat"></canvas></div></div>
+<div class="card"><h3>Downtime by machine type</h3><div class="canvas-box"><canvas id="c_mtype"></canvas></div></div>
+<div class="card wide"><h3>Downtime trend (events, by month)</h3><div class="canvas-box"><canvas id="c_dtrend"></canvas></div></div>
+</div>
+<div class="callout">Two downtime sources exist: minutes recorded on production runs and separate downtime events. The totals differ, so each chart states which source it uses.</div></section>
+
+<!-- 4 QUALITY -->
+<section class="page" id="p4"><h2>4. Quality Analysis</h2><p class="sub">Where are defects and rework concentrated?</p>
+<div class="kpis" id="qKpis"></div>
+<div class="grid">
+<div class="card"><h3>Inspection outcome</h3><div class="canvas-box"><canvas id="c_qstatus"></canvas></div></div>
+<div class="card"><h3>Defective units by defect type (excl. No Defect)</h3><div class="canvas-box"><canvas id="c_dtype"></canvas></div></div>
+<div class="card"><h3>Defect rate by plant (inspected units)</h3><div class="canvas-box"><canvas id="c_qplant"></canvas></div></div>
+<div class="card"><h3>Defect rate by product (inspected units)</h3><div class="canvas-box"><canvas id="c_qprod"></canvas></div></div>
+</div></section>
+
+<!-- 5 EFFICIENCY -->
+<section class="page" id="p5"><h2>5. Operational Efficiency</h2><p class="sub">Total efficiency by plant: output, defects, downtime and energy together.</p>
+<div class="card"><table id="tbl_eff"></table>
+<div class="note" style="font-size:11px;color:var(--muted);margin-top:8px">Red = worst value in column; green = best. Energy per unit = kWh / produced units.</div></div>
+<div class="grid" style="margin-top:14px">
+<div class="card"><h3>Energy per unit (kWh) by plant</h3><div class="canvas-box"><canvas id="c_energy"></canvas></div></div>
+<div class="card"><h3>Est. defect cost exposure by plant</h3><div class="canvas-box"><canvas id="c_effcost"></canvas></div></div>
+</div></section>
+
+<!-- 6 FINANCE -->
+<section class="page" id="p6"><h2>6. Finance & Cost Analysis</h2><p class="sub">Procurement spend, product cost and estimated exposure. Margin is potential, not actual profit.</p>
+<div class="kpis" id="finKpis"></div>
+<div class="grid">
+<div class="card"><h3>Procurement spend by supplier</h3><div class="canvas-box"><canvas id="c_fsup"></canvas></div></div>
+<div class="card"><h3>Procurement spend by material</h3><div class="canvas-box"><canvas id="c_fmat"></canvas></div></div>
+<div class="card"><h3>Unit cost vs potential unit margin by product</h3><div class="canvas-box"><canvas id="c_margin"></canvas></div></div>
+<div class="card"><h3>Estimated defect cost exposure by product</h3><div class="canvas-box"><canvas id="c_fcost"></canvas></div></div>
+</div>
+<div class="note" style="font-size:12px;color:var(--muted);margin-top:10px">Estimated defect cost = defective units x product unit cost. Estimate only; not confirmed scrap or rework cost.</div></section>
+
+<!-- 7 PROCUREMENT -->
+<section class="page" id="p7"><h2>7. Procurement & Supplier Performance</h2><p class="sub">Purchase volume, lead-time reliability and whether supplier ratings match delivery.</p>
+<div class="kpis" id="procKpis"></div>
+<div class="grid">
+<div class="card"><h3>Expected vs actual lead days (avg) by supplier</h3><div class="canvas-box"><canvas id="c_lead"></canvas></div></div>
+<div class="card"><h3>Delayed PO % vs supplier rating</h3><div id="tbl_sup"></div></div>
+<div class="card wide"><h3>Procurement spend trend by month</h3><div class="canvas-box"><canvas id="c_ptrend"></canvas></div></div>
+</div>
+<div class="note" style="font-size:12px;color:var(--muted);margin-top:10px">"Unknown" supplier = 6 purchase orders with a blank supplier ID. Averages exclude 14 POs with a blank actual lead time.</div></section>
+
+<!-- 8 MATERIALS -->
+<section class="page" id="p8"><h2>8. Materials & Supply Chain Risk</h2><p class="sub">Which materials most products depend on, and whether material shortages show up as downtime.</p>
+<div class="grid">
+<div class="card"><h3>Products using each material</h3><div class="canvas-box"><canvas id="c_matdep"></canvas></div></div>
+<div class="card"><h3>Materials used per product</h3><div class="canvas-box"><canvas id="c_prodmat"></canvas></div></div>
+<div class="card"><h3>Material shortage downtime by plant (minutes)</h3><div class="canvas-box"><canvas id="c_short"></canvas></div></div>
+<div class="card"><h3>Standard cost by material</h3><div class="canvas-box"><canvas id="c_stdcost"></canvas></div></div>
+</div>
+<div class="callout">Material shortage events and supplier delays are shown side by side as risk indicators. The data does not establish that one causes the other.</div></section>
+
+<!-- 9 OPERATOR & SHIFT -->
+<section class="page" id="p9"><h2>9. Operator & Shift Performance</h2><p class="sub">Do shifts or operator experience show different output, defect or downtime patterns?</p>
+<div class="grid">
+<div class="card"><h3>Production and defect rate by shift</h3><div class="canvas-box"><canvas id="c_shift"></canvas></div></div>
+<div class="card"><h3>Experience vs achievement % by operator</h3><div class="canvas-box"><canvas id="c_exp"></canvas></div></div>
+<div class="card wide"><h3>Operator ranking</h3><div id="tbl_op" style="max-height:360px;overflow:auto"></div></div>
+</div></section>
+</main>
+<footer>Built from AeroHome_Clean_Data.xlsx. Figures recompute from the cleaned data. Blank values are excluded as documented in the cleaning log.</footer>
+
+<script>
+const D = {"kpi": {"planned": 1107428, "produced": 1066003, "defects": 18087, "downtime": 161174, "energy": 1335631, "spend": 1161840928, "est_cost": 540988000, "runs": 2210, "pos": 1100, "achievement": 96.3, "defect_rate": 1.7}, "mtrend": {"labels": ["2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12"], "planned": [96709, 84054, 93477, 79168, 91428, 88495, 86351, 94525, 84333, 101890, 94655, 112343], "produced": [92335, 80637, 90350, 77137, 87757, 85148, 81776, 90430, 81740, 99365, 91607, 107721], "achievement": [95.5, 95.9, 96.7, 97.4, 96.0, 96.2, 94.7, 95.7, 96.9, 97.5, 96.8, 95.9]}, "plant": {"labels": ["AeroHome Chennai Plant", "AeroHome Pune Plant", "AeroHome Hyderabad Plant", "AeroHome Coimbatore Plant"], "planned": [262106, 281179, 258091, 297999], "produced": [251849, 273594, 251292, 289268], "achievement": [96.1, 97.3, 97.4, 97.1], "defect_rate": [1.6, 1.74, 1.72, 1.72], "energy_per_unit": [1.23, 1.263, 1.253, 1.229], "downtime": [37782, 40719, 36036, 45567], "shortfall": [10257, 7585, 6799, 8731], "est_cost": [121206000, 140353500, 128549000, 150879500]}, "product": {"labels": ["AeroWash 10kg", "AeroCool 2T", "AeroFreeze 300L", "AeroWash 8kg", "AeroDish 12", "AeroHeat 25L", "AeroFreeze 450L", "AeroCool 1.5T"], "achievement": [96.6, 96.7, 96.9, 96.8, 96.0, 97.4, 97.9, 97.2], "produced": [123067, 124244, 128530, 131291, 134368, 135275, 144613, 144615], "defect_rate": [1.75, 1.74, 1.57, 1.82, 1.64, 1.62, 1.71, 1.73], "est_cost": [68928000, 88806000, 59472000, 68058000, 57330000, 19746000, 93784000, 84864000]}, "margin": {"labels": ["AeroWash 8kg", "AeroWash 10kg", "AeroCool 1.5T", "AeroCool 2T", "AeroFreeze 300L", "AeroFreeze 450L", "AeroHeat 25L", "AeroDish 12"], "unit_cost": [28500, 32000, 34000, 41000, 29500, 38000, 9000, 26000], "potential_margin": [11400, 12900, 14900, 17900, 13400, 16900, 4900, 11900], "margin_pct": [28.6, 28.7, 30.5, 30.4, 31.2, 30.8, 35.3, 31.4]}, "machine": {"labels": ["Packaging Line 2 (P004)", "Packaging Line 1 (P004)", "Compressor Station (P002)", "Welding Cell 1 (P002)", "Welding Cell 2 (P003)", "Assembly Line 1 (P001)", "Injection Moulder (P001)", "Assembly Line 2 (P001)", "Final Assembly 3 (P003)", "Testing Station 1 (P003)"], "downtime": [23773, 21794, 21661, 19058, 13281, 13096, 12632, 12054, 11595, 11160], "achievement": [96.8, 97.3, 97.8, 96.8, 97.5, 96.4, 96.0, 95.8, 97.4, 97.2]}, "mtype": {"labels": ["Packaging", "Assembly", "Fabrication", "Component", "Moulding", "Quality Testing"], "downtime": [45567, 36745, 32339, 21661, 12632, 11160]}, "reason": {"labels": ["Material Shortage", "Preventive Maintenance", "Machine Breakdown", "Changeover", "Operator Issue", "Electrical Fault"], "minutes": [22554, 21922, 20870, 19432, 19236, 18315], "events": [242, 224, 221, 212, 210, 191]}, "category": {"labels": ["Supply Chain", "Maintenance", "Mechanical", "Planned", "People", "Electrical"], "minutes": [22554, 21922, 20870, 19432, 19236, 18315]}, "dtrend": {"labels": ["2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12"], "minutes": [12398, 9808, 9095, 9256, 8732, 8139, 8457, 10906, 11091, 11072, 10269, 13106]}, "pend": {"Pending": 332, "Resolved": 968}, "quality_status": {"labels": ["Pass", "Fail", "Rework"], "counts": [198, 771, 1231]}, "defect_type": {"labels": ["Electrical", "Packaging", "Assembly", "Cosmetic", "Mechanical"], "units": [3750, 3692, 3656, 3594, 3401]}, "quality_plant": {"labels": ["AeroHome Chennai Plant", "AeroHome Pune Plant", "AeroHome Hyderabad Plant", "AeroHome Coimbatore Plant"], "defect_rate": [1.6, 1.72, 1.72, 1.72]}, "quality_product": {"labels": ["AeroWash 8kg", "AeroWash 10kg", "AeroCool 1.5T", "AeroCool 2T", "AeroFreeze 300L", "AeroFreeze 450L", "AeroHeat 25L", "AeroDish 12"], "defect_rate": [1.82, 1.75, 1.72, 1.75, 1.56, 1.71, 1.6, 1.63]}, "finance_sup": {"labels": ["Global Compressors", "Precision Motors", "Electra Parts", "Bright Components", "CoolTech Components", "HomeTech Plastics", "Prime Metals", "SafePack Materials", "Unknown"], "spend": [178709718, 164305912, 153328542, 149681069, 139063613, 124503060, 120494883, 114054433, 17699697]}, "finance_mat": {"labels": ["Compressor Unit", "Motor Assembly", "Control Board", "Steel Frame", "Glass Panel", "Copper Wire", "Aluminium Sheet", "Power Cable", "ABS Plastic", "Insulation Foam", "Rubber Seal", "Packaging Carton"], "spend": [314268569, 280966079, 252271518, 119584088, 72065497, 49388048, 17765026, 16141183, 15263903, 11050391, 7670213, 5406413]}, "proc_trend": {"labels": ["2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12"], "spend": [105583231, 78491672, 87563401, 108376224, 78653126, 85549259, 84915368, 87640813, 93101047, 91632802, 119650858, 140683126], "pos": [92, 81, 78, 88, 94, 84, 95, 92, 105, 82, 88, 121]}, "supplier": {"labels": ["Unknown", "HomeTech Plastics", "Electra Parts", "Precision Motors", "Global Compressors", "CoolTech Components", "Bright Components", "SafePack Materials", "Prime Metals"], "expected": [14.5, 10.7, 10.4, 10.1, 11.0, 10.3, 10.6, 10.6, 9.9], "actual": [16.0, 12.3, 12.3, 12.2, 12.2, 12.0, 11.9, 11.5, 11.0], "pos": [6, 117, 122, 150, 150, 140, 141, 132, 142], "delayed_pct": [16.7, 17.1, 22.1, 27.3, 12.0, 18.6, 11.3, 11.4, 12.7], "rating": [null, 3.7, 4.0, 4.4, null, null, 4.6, 4.5, 4.2]}, "delivery": {"On Time": 918, "Delayed": 182}, "mat_dep": {"labels": ["Copper Wire", "Control Board", "ABS Plastic", "Glass Panel", "Compressor Unit", "Insulation Foam", "Packaging Carton", "Rubber Seal", "Motor Assembly", "Power Cable", "Steel Frame"], "products": [8, 6, 6, 6, 4, 4, 4, 3, 2, 2, 2], "std_cost": [620.0, 3100.0, 190.0, 850.0, 5200.0, 160.0, 75.0, NaN, 4200.0, 210.0, 1850.0]}, "prodmat": {"labels": ["AeroWash 8kg", "AeroWash 10kg", "AeroCool 1.5T", "AeroCool 2T", "AeroFreeze 300L", "AeroFreeze 450L", "AeroHeat 25L", "AeroDish 12"], "materials": [6, 6, 6, 6, 6, 6, 5, 6]}, "shortage_plant": {"labels": ["AeroHome Chennai Plant", "AeroHome Pune Plant", "AeroHome Hyderabad Plant", "AeroHome Coimbatore Plant"], "minutes": [4824, 5687, 6563, 5480]}, "shift": {"labels": ["Evening", "Morning", "Night"], "produced": [195471, 512310, 358222], "defect_rate": [1.61, 1.73, 1.69], "downtime": [29767, 76128, 54209]}, "operator": {"rows": [["Kavya Menon", 10, 99.35, 1.65, 2670.0], ["Asha Das", 8, 98.97, 1.72, 7962.0], ["Priya Sharma", 12, 98.48, 1.75, 7594.0], ["Bala Nair", 5, 98.37, 1.77, 8533.0], ["Suresh Singh", 2, 98.28, 1.85, 4809.0], ["Swetha Patel", 11, 98.04, 1.49, 5154.0], ["Meena Iyer", 4, 98.0, 1.47, 3320.0], ["Naveen Rao", 4, 97.97, 1.74, 3612.0], ["Manoj Kumar", 8, 97.95, 1.5, 2297.0], ["Rahul Reddy", 12, 97.9, 1.33, 2684.0], ["Mohan Rao", 5, 97.86, 1.42, 4259.0], ["Vikram Singh", 3, 97.68, 1.67, 4248.0], ["Vijay Nair", 4, 97.66, 1.67, 3875.0], ["Anitha Das", 4, 97.0, 1.83, 4592.0], ["Surya Reddy", 4, 96.88, 1.59, 9880.0], ["Deepa Sharma", 9, 96.86, 1.67, 7945.0], ["Neha Menon", 2, 96.68, 1.6, 9489.0], ["Harish Kumar", 6, 96.66, 1.64, 8700.0], ["Reshma Patel", 10, 96.65, 1.95, 4739.0], ["Ajay Singh", 11, 96.55, 1.5, 3780.0], ["Divya Patel", 8, 96.51, 1.94, 9720.0], ["Nisha Menon", 8, 96.44, 1.79, 8659.0], ["Dinesh Reddy", 6, 95.94, 1.8, 7804.0], ["Karthik Rao", 7, 95.56, 1.94, 3455.0], ["Lakshmi Das", 15, 95.44, 1.65, 2618.0], ["Keerthi Iyer", 11, 95.12, 1.91, 3583.0], ["Pooja Iyer", 4, 94.98, 1.72, 3682.0], ["Arun Kumar", 12, 94.42, 1.86, 2834.0], ["Ramesh Nair", 14, 94.38, 1.2, 3332.0], ["Sanjana Sharma", 14, 92.17, 1.78, 4275.0]]}, "exp_scatter": {"x": [12, 12, 7, 4, 4, 8, 12, 4, 2, 10, 8, 9, 4, 4, 14, 11, 6, 15, 11, 8, 6, 14, 5, 11, 5, 10, 4, 8, 3, 2], "y": [94.4, 98.5, 95.6, 98.0, 97.7, 96.5, 97.9, 97.0, 98.3, 99.4, 97.9, 96.9, 98.0, 95.0, 94.4, 98.0, 95.9, 95.4, 96.5, 96.4, 96.7, 92.2, 97.9, 95.1, 98.4, 96.6, 96.9, 99.0, 97.7, 96.7], "names": ["Arun Kumar", "Priya Sharma", "Karthik Rao", "Meena Iyer", "Vijay Nair", "Divya Patel", "Rahul Reddy", "Anitha Das", "Suresh Singh", "Kavya Menon", "Manoj Kumar", "Deepa Sharma", "Naveen Rao", "Pooja Iyer", "Ramesh Nair", "Swetha Patel", "Dinesh Reddy", "Lakshmi Das", "Ajay Singh", "Nisha Menon", "Harish Kumar", "Sanjana Sharma", "Mohan Rao", "Keerthi Iyer", "Bala Nair", "Reshma Patel", "Surya Reddy", "Asha Das", "Vikram Singh", "Neha Menon"]}, "units_inspected": 1069422};
+const pages=[['p1','Executive'],['p2','Production'],['p3','Machine & Downtime'],['p4','Quality'],['p5','Efficiency'],['p6','Finance'],['p7','Procurement'],['p8','Materials'],['p9','Operators & Shifts']];
+const nav=document.getElementById('nav');
+pages.forEach(([id,label],i)=>{const b=document.createElement('button');b.textContent=label;b.onclick=()=>show(id,b);nav.appendChild(b);if(i===0)b.classList.add('active');});
+function show(id,btn){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b===btn));window.scrollTo(0,0);}
+document.querySelector('.page').classList.add('active');
+const fmt=n=>n==null?'-':Number(n).toLocaleString('en-IN',{maximumFractionDigits:0});
+const fmtM=n=>n>=1e7?'₹'+(n/1e7).toFixed(1)+' Cr':n>=1e5?'₹'+(n/1e5).toFixed(1)+' L':'₹'+fmt(n);
+const pct=n=>n==null?'-':n.toFixed(1)+'%';
+function kpi(id,items){document.getElementById(id).innerHTML=items.map(([l,v,n])=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div>${n?`<div class="n">${n}</div>`:''}</div>`).join('');}
+const K=D.kpi;
+kpi('execKpis',[['Planned units',fmt(K.planned)],['Produced units',fmt(K.produced)],['Achievement %',pct(K.achievement),'Produced / planned'],['Defective units',fmt(K.defects)],['Defect rate',pct(K.defect_rate),'Defects / produced'],['Total downtime (min)',fmt(K.downtime),'Production-run minutes'],['Total energy (kWh)',fmt(K.energy)],['Procurement spend',fmtM(K.spend),'Qty x unit price'],['Est. defect cost',fmtM(K.est_cost),'Estimate, not confirmed']]);
+const C=[];
+function chart(id,type,labels,datasets,opts={}){const c=new Chart(document.getElementById(id),{type,data:{labels,datasets},options:Object.assign({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:datasets.length>1}}},opts)});C.push(c);return c;}
+const bar=(id,labels,data,label,color='#1f5fa8',horizontal=false,fmtFn)=>chart(id,'bar',labels,[{label,data,backgroundColor:color}],{indexAxis:horizontal?'y':'x',plugins:{legend:{display:false}}});
+const col=['#1f5fa8','#e0a800','#2e8b57','#c0392b','#7d5ba6','#17a2b8','#fd7e14','#6c757d','#20c997','#d63384','#495057','#adb5bd'];
+
+// Page 1
+chart('c_mtrend','line',D.mtrend.labels,[{label:'Planned',data:D.mtrend.planned,borderColor:'#9aa5b8',tension:.3,fill:false},{label:'Produced',data:D.mtrend.produced,borderColor:'#1f5fa8',tension:.3,fill:false}],{scales:{y:{beginAtZero:false}}});
+chart('c_exec_plant','bar',D.plant.labels,[{label:'Achievement %',data:D.plant.achievement,backgroundColor:D.plant.achievement.map(v=>v<96.3?'#c0392b':'#2e8b57')}],{plugins:{legend:{display:false}}});
+const worstP=D.plant.labels[D.plant.achievement.indexOf(Math.min(...D.plant.achievement))];
+const worstD=D.plant.labels[D.plant.defect_rate.indexOf(Math.max(...D.plant.defect_rate))];
+const worstMach=D.machine.labels[D.machine.downtime.indexOf(Math.max(...D.machine.downtime))];
+const topReason=D.reason.labels[0];
+document.getElementById('attention').innerHTML=`<ul style="font-size:13px;padding-left:18px;margin:0;line-height:1.7">
+<li><b>${worstP}</b> has the lowest production achievement (${pct(Math.min(...D.plant.achievement))}).</li>
+<li><b>${worstD}</b> has the highest defect rate (${pct(Math.max(...D.plant.defect_rate))}).</li>
+<li><b>${worstMach}</b> has the highest run downtime.</li>
+<li>Top downtime reason: <b>${topReason}</b>; ${pct(D.quality_status.counts[2]/(D.quality_status.counts.reduce((a,b)=>a+b,0))*100)} of inspections required rework.</li>
+<li>${D.pend.Pending||0} downtime events are still pending.</li></ul>`;
+
+// Page 2
+const pp=D.plant;
+chart('c_pl_pp','bar',pp.labels,[{label:'Planned',data:pp.planned,backgroundColor:'#9aa5b8'},{label:'Produced',data:pp.produced,backgroundColor:'#1f5fa8'}]);
+const pdv=D.product;
+bar('c_prod_ach',pdv.labels,pdv.achievement,'Achievement %','#e0a800',true);
+bar('c_mach_ach',D.machine.labels,D.machine.achievement,'Achievement %','#1f5fa8',true);
+document.getElementById('tbl_plant_short').innerHTML=`<table><tr><th>Plant</th><th>Shortfall (units)</th><th>Achievement</th></tr>${pp.labels.map((l,i)=>`<tr><td>${l}</td><td>${fmt(pp.shortfall[i])}</td><td class="${pp.achievement[i]<96.3?'flag':'good'}">${pct(pp.achievement[i])}</td></tr>`).join('')}</table>`;
+
+// Page 3
+kpi('dtKpis',[['Total downtime (run minutes)',fmt(K.downtime)],['Downtime events',fmt(D.reason.events.reduce((a,b)=>a+b,0))],['Event minutes',fmt(D.reason.minutes.reduce((a,b)=>a+b,0))],['Pending events',fmt(D.pend.Pending||0)]]);
+bar('c_mach_dt',D.machine.labels,D.machine.downtime,'Minutes','#c0392b',true);
+bar('c_reason',D.reason.labels,D.reason.minutes,'Minutes','#1f5fa8',true);
+bar('c_cat',D.category.labels,D.category.minutes,'Minutes','#7d5ba6',true);
+bar('c_mtype',D.mtype.labels,D.mtype.downtime,'Minutes','#17a2b8');
+chart('c_dtrend','line',D.dtrend.labels,[{label:'Downtime minutes (events)',data:D.dtrend.minutes,borderColor:'#c0392b',tension:.3}]);
+
+// Page 4
+kpi('qKpis',[['Units inspected',fmt(D.units_inspected)],['Defective units (runs)',fmt(K.defects)],['Defect rate (runs)',pct(K.defect_rate),'Defects / produced'],['Rework share',pct(D.quality_status.counts[2]/D.quality_status.counts.reduce((a,b)=>a+b,0)*100),'Of inspections']]);
+chart('c_qstatus','doughnut',D.quality_status.labels,[{data:D.quality_status.counts,backgroundColor:['#2e8b57','#c0392b','#e0a800']}]);
+bar('c_dtype',D.defect_type.labels,D.defect_type.units,'Defective units','#7d5ba6',true);
+bar('c_qplant',D.quality_plant.labels,D.quality_plant.defect_rate,'Defect rate %','#c0392b');
+bar('c_qprod',D.quality_product.labels,D.quality_product.defect_rate,'Defect rate %','#1f5fa8',true);
+
+// Page 5
+const effRows=[['Achievement %',pp.achievement,'max'],['Defect rate %',pp.defect_rate,'min'],['Downtime (min)',pp.downtime,'min'],['Energy per unit (kWh)',pp.energy_per_unit,'min'],['Est. defect cost',pp.est_cost,'min']];
+let t='<tr><th>Plant</th>'+effRows.map(r=>`<th>${r[0]}</th>`).join('')+'</tr>';
+pp.labels.forEach((l,i)=>{t+=`<tr><td>${l}</td>`+effRows.map(([n,arr,dir])=>{const best=dir==='max'?Math.max(...arr):Math.min(...arr);const worst=dir==='max'?Math.min(...arr):Math.max(...arr);const cls=arr[i]===worst?'flag':arr[i]===best?'good':'';const v=n.includes('%')?pct(arr[i]):n.includes('kWh')?arr[i].toFixed(3):fmt(arr[i]);return `<td class="${cls}">${v}</td>`}).join('')+'</tr>';});
+document.getElementById('tbl_eff').innerHTML=t;
+bar('c_energy',pp.labels,pp.energy_per_unit,'kWh per unit','#e0a800');
+bar('c_effcost',pp.labels,pp.est_cost,'Est. defect cost','#c0392b');
+
+// Page 6
+const supSpend=D.finance_sup.spend.reduce((a,b)=>a+b,0);
+kpi('finKpis',[['Procurement spend',fmtM(K.spend)],['Purchase orders',fmt(K.pos)],['Est. defect cost',fmtM(K.est_cost),'Estimate, not confirmed'],['Avg potential unit margin',fmtM(D.margin.potential_margin.reduce((a,b)=>a+b,0)/D.margin.potential_margin.length),'Target price - unit cost']]);
+bar('c_fsup',D.finance_sup.labels,D.finance_sup.spend,'Spend','#1f5fa8',true);
+bar('c_fmat',D.finance_mat.labels,D.finance_mat.spend,'Spend','#2e8b57',true);
+chart('c_margin','bar',D.margin.labels,[{label:'Unit cost',data:D.margin.unit_cost,backgroundColor:'#9aa5b8'},{label:'Potential unit margin (not profit)',data:D.margin.potential_margin,backgroundColor:'#2e8b57'}]);
+bar('c_fcost',D.product.labels,D.product.est_cost,'Est. defect cost','#c0392b',true);
+
+// Page 7
+const sup=D.supplier;
+kpi('procKpis',[['Purchase orders',fmt(K.pos)],['Procurement spend',fmtM(K.spend)],['Delayed POs',fmt(D.delivery.Delayed),pct(D.delivery.Delayed/K.pos*100)+' of POs'],['Avg actual lead days',(sup.actual.reduce((a,b)=>a+b,0)/sup.actual.length).toFixed(1),'Mean across suppliers']]);
+chart('c_lead','bar',sup.labels,[{label:'Expected lead days',data:sup.expected,backgroundColor:'#9aa5b8'},{label:'Actual lead days',data:sup.actual,backgroundColor:'#1f5fa8'}]);
+document.getElementById('tbl_sup').innerHTML=`<table><tr><th>Supplier</th><th>POs</th><th>Delayed %</th><th>Rating</th></tr>${sup.labels.map((l,i)=>`<tr><td>${l}</td><td>${sup.pos[i]}</td><td class="${sup.delayed_pct[i]>20?'flag':''}">${pct(sup.delayed_pct[i])}</td><td>${sup.rating[i]??'blank'}</td></tr>`).join('')}</table>`;
+chart('c_ptrend','bar',D.proc_trend.labels,[{label:'Spend',data:D.proc_trend.spend,backgroundColor:'#1f5fa8',yAxisID:'y'},{label:'POs',data:D.proc_trend.pos,type:'line',borderColor:'#e0a800',yAxisID:'y1'}],{scales:{y1:{position:'right',grid:{drawOnChartArea:false}}}});
+
+// Page 8
+bar('c_matdep',D.mat_dep.labels,D.mat_dep.products,'Products','#1f5fa8',true);
+bar('c_prodmat',D.prodmat.labels,D.prodmat.materials,'Materials','#7d5ba6',true);
+bar('c_short',D.shortage_plant.labels,D.shortage_plant.minutes,'Minutes','#c0392b');
+bar('c_stdcost',D.mat_dep.labels,D.mat_dep.std_cost,'Std cost','#e0a800',true);
+
+// Page 9
+chart('c_shift','bar',D.shift.labels,[{label:'Produced units',data:D.shift.produced,backgroundColor:'#1f5fa8',yAxisID:'y'},{label:'Defect rate %',data:D.shift.defect_rate,type:'line',borderColor:'#c0392b',yAxisID:'y1'}],{scales:{y1:{position:'right',grid:{drawOnChartArea:false}}}});
+const ex=D.exp_scatter;
+chart('c_exp','scatter',null,[{label:'Operators',data:ex.x.map((x,i)=>({x,y:ex.y[i]})),backgroundColor:'#1f5fa8'}],{scales:{x:{title:{display:true,text:'Experience (years)'}},y:{title:{display:true,text:'Achievement %'}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>ex.names[c.dataIndex]+': '+c.parsed.y+'%'}}}});
+document.getElementById('tbl_op').innerHTML=`<table><tr><th>Operator</th><th>Experience (yrs)</th><th>Achievement</th><th>Defect rate</th><th>Downtime (min)</th></tr>${D.operator.rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="${r[2]<96.3?'flag':''}">${pct(r[2])}</td><td>${pct(r[3])}</td><td>${fmt(r[4])}</td></tr>`).join('')}</table>`;
+</script></body></html>

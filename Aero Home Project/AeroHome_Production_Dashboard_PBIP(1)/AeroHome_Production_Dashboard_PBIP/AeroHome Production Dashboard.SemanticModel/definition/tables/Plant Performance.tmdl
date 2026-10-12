@@ -1,0 +1,100 @@
+table 'Plant Performance'
+	lineageTag: 793b3f7d-eba9-417f-890d-fb846fdfc592
+
+	measure 'Total Planned Units' = SUM('Plant Performance'[Planned])
+		formatString: #,##0
+		lineageTag: 94136850-1926-469b-b4c4-f64b366f6944
+
+	measure 'Total Produced Units' = SUM('Plant Performance'[Produced])
+		formatString: #,##0
+		lineageTag: ead309ee-56ef-4325-89d0-9360d9ea00a2
+
+	measure 'Production Shortfall' = SUM('Plant Performance'[Shortfall])
+		formatString: #,##0
+		lineageTag: 0c38770a-2d3d-44ef-be59-3056f898f023
+
+	measure 'Total Downtime (min)' = SUM('Plant Performance'[Downtime])
+		formatString: #,##0
+		lineageTag: 78a93eb4-d78d-406a-a1dc-af18fcfc7562
+
+	measure 'Defect Cost Exposure (M)' = SUM('Plant Performance'[DefectCostM])
+		formatString: 0.0
+		lineageTag: f0f14f2b-1f8f-4c89-b4d4-a965708169ca
+
+	measure 'Achievement %' = DIVIDE([Total Produced Units], [Total Planned Units])
+		formatString: 0.0%
+		lineageTag: b4c45e7d-f58b-4094-bad5-5c1668e001aa
+
+	measure 'Overall Shortfall Share' = DIVIDE([Production Shortfall], CALCULATE([Production Shortfall], ALL('Plant Performance'[Plant])))
+		formatString: 0.0%
+		lineageTag: ebdf9439-e1c6-4b8d-95ba-f1c244e58ede
+
+	column Plant
+		dataType: string
+		lineageTag: ef9301f9-d36b-47f9-85f7-261d9a2bf9b2
+		summarizeBy: none
+		sourceColumn: Plant
+
+	column Planned
+		dataType: int64
+		formatString: #,##0
+		lineageTag: acef7d7e-adad-4557-80ce-035758c4934b
+		summarizeBy: sum
+		sourceColumn: Planned
+
+	column Shortfall
+		dataType: int64
+		formatString: #,##0
+		lineageTag: 83c9fc90-1371-455c-bac7-f1f3a1f8db22
+		summarizeBy: sum
+		sourceColumn: Shortfall
+
+	column Downtime
+		dataType: int64
+		formatString: #,##0
+		lineageTag: 55cdde85-d5fb-46e5-baf0-a15f88413003
+		summarizeBy: sum
+		sourceColumn: Downtime
+
+	column DefectCostM
+		dataType: double
+		formatString: 0.00
+		lineageTag: 64f4a401-843e-4d84-9d9a-9d30a87423d6
+		summarizeBy: sum
+		sourceColumn: DefectCostM
+
+	column Produced
+		dataType: int64
+		formatString: #,##0
+		lineageTag: 323d2732-3002-48e4-97fb-b22797ccbe53
+		summarizeBy: sum
+		sourceColumn: Produced
+
+	column Achievement
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 41a85604-04d4-4c28-9918-c5dfab1c7058
+		summarizeBy: sum
+		sourceColumn: Achievement
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Plant Performance' = m
+		mode: import
+		source =
+				let
+					Source = #table(
+						{"Plant","Planned","Shortfall","Downtime","DefectCostM"},
+						{
+							{"Chennai",264000,12151,29596,266.48176121},
+							{"Coimbatore",300348,11080,30854,333.00533426},
+							{"Hyderabad",259876,8584,27973,306.13255693},
+							{"Pune",283204,9610,30784,256.22127577}
+						}
+					),
+					Typed = Table.TransformColumnTypes(Source,{{"Plant", type text},{"Planned", Int64.Type},{"Shortfall", Int64.Type},{"Downtime", Int64.Type},{"DefectCostM", type number}}),
+					AddedProduced = Table.AddColumn(Typed, "Produced", each [Planned]-[Shortfall], Int64.Type),
+					AddedAchievement = Table.AddColumn(AddedProduced, "Achievement", each [Produced]/[Planned], type number)
+				in
+					AddedAchievement
+

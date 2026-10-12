@@ -1,0 +1,86 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
+  "name": "planned_produced",
+  "position": {
+    "x": 24,
+    "y": 215,
+    "z": 1000,
+    "height": 220,
+    "width": 400,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Plant Performance"
+                    }
+                  },
+                  "Property": "Plant"
+                }
+              },
+              "queryRef": "Plant Performance.Plant",
+              "nativeQueryRef": "Plant",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Plant Performance"
+                    }
+                  },
+                  "Property": "Total Planned Units"
+                }
+              },
+              "queryRef": "Plant Performance.Total Planned Units",
+              "nativeQueryRef": "Total Planned Units"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Plant Performance"
+                    }
+                  },
+                  "Property": "Total Produced Units"
+                }
+              },
+              "queryRef": "Plant Performance.Total Produced Units",
+              "nativeQueryRef": "Total Produced Units"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

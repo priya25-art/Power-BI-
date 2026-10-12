@@ -1,0 +1,90 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
+  "name": "downtime_achievement",
+  "position": {
+    "x": 856,
+    "y": 450,
+    "z": 1000,
+    "height": 240,
+    "width": 400,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "scatterChart",
+    "query": {
+      "queryState": {
+        "Details": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Plant Performance"
+                    }
+                  },
+                  "Property": "Plant"
+                }
+              },
+              "queryRef": "Plant Performance.Plant",
+              "nativeQueryRef": "Plant"
+            }
+          ]
+        },
+        "X": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Plant Performance"
+                    }
+                  },
+                  "Property": "Total Downtime (min)"
+                }
+              },
+              "queryRef": "Plant Performance.Total Downtime (min)",
+              "nativeQueryRef": "Total Downtime (min)",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Plant Performance"
+                    }
+                  },
+                  "Property": "Achievement %"
+                }
+              },
+              "queryRef": "Plant Performance.Achievement %",
+              "nativeQueryRef": "Achievement %"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}
